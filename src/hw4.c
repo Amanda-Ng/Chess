@@ -185,10 +185,28 @@ int receive_command(ChessGame *game, const char *message, int socketfd, bool is_
 }
 
 int save_game(ChessGame *game, const char *username, const char *db_filename) {
-    (void)game;
-    (void)username;
-    (void)db_filename;
-    return -999;
+    // (void)game;
+    // (void)username;
+    // (void)db_filename;
+    // return -999;
+    // Generate FEN string of the current game state
+    char fen[80];
+    chessboard_to_fen(fen, game);
+    
+    // Open the database file for appending
+    FILE *file = fopen(db_filename, "a");
+    if (file == NULL) {
+        fprintf(stderr, "Error: Could not open database file.\n");
+        return -1; // Error opening file
+    }
+    
+    // Write the username and FEN string to the file
+    fprintf(file, "%s:%s\n", username, fen);
+    
+    // Close the file
+    fclose(file);
+    
+    return 0; // Successful save operation
 }
 
 int load_game(ChessGame *game, const char *username, const char *db_filename, int save_number) {
