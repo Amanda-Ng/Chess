@@ -65,56 +65,202 @@ void chessboard_to_fen(char fen[], ChessGame *game) {
 }
 
 bool is_valid_pawn_move(char piece, int src_row, int src_col, int dest_row, int dest_col, ChessGame *game) {
-    (void)piece;
-    (void)src_row;
-    (void)src_col;
-    (void)dest_row;
-    (void)dest_col;
-    (void)game;
-    return false;
+    // (void)piece;
+    // (void)src_row;
+    // (void)src_col;
+    // (void)dest_row;
+    // (void)dest_col;
+    // (void)game;
+    // return false;
+    int player = (piece >= 'a') ? BLACK_PLAYER : WHITE_PLAYER;
+    int direction = (player == WHITE_PLAYER) ? 1 : -1;
+
+    // Check if destination square is within the board limits
+    if (dest_row < 0 || dest_row > 7 || dest_col < 0 || dest_col > 7) {
+        return false;
+    }
+
+    // Check if pawn is moving forward
+    if ((dest_row - src_row) * direction <= 0) {
+        return false;
+    }
+
+    // Check if pawn is moving two squares forward from its starting position
+    if (src_row == (player == WHITE_PLAYER ? 1 : 6) && dest_row - src_row == 2 * direction) {
+        // Check if the path is clear (no piece blocking)
+        if (game->chessboard[src_row + direction][src_col] != '.') {
+            return false;
+        }
+    }
+
+    // Check if pawn is moving one square forward
+    if (dest_row - src_row == 1 * direction) {
+        // Check if the path is clear (no piece blocking)
+        if (game->chessboard[dest_row][dest_col] != '.') {
+            return false;
+        }
+    }
+
+    // Check if pawn is capturing diagonally
+    if (dest_col != src_col && game->chessboard[dest_row][dest_col] != '.') {
+        // Check if capturing diagonally
+        if (abs(dest_col - src_col) == 1 && dest_row - src_row == 1 * direction) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool is_valid_rook_move(int src_row, int src_col, int dest_row, int dest_col, ChessGame *game) {
-    (void)src_row;
-    (void)src_col;
-    (void)dest_row;
-    (void)dest_col;
-    (void)game;
-    return false;
+    // (void)src_row;
+    // (void)src_col;
+    // (void)dest_row;
+    // (void)dest_col;
+    // (void)game;
+    // return false;
+    // Check if the move is horizontal or vertical
+    if (src_row != dest_row && src_col != dest_col) {
+        return false; // Not moving horizontally or vertically
+    }
+    
+    // Check if there are no pieces blocking the path between source and destination
+    if (src_row == dest_row) {
+        // Moving horizontally
+        int delta_col = (dest_col > src_col) ? 1 : -1;
+        int col = src_col + delta_col;
+        while (col != dest_col) {
+            if (game->chessboard[src_row][col] != '.') {
+                return false; // Piece blocking the path
+            }
+            col += delta_col;
+        }
+    } else {
+        // Moving vertically
+        int delta_row = (dest_row > src_row) ? 1 : -1;
+        int row = src_row + delta_row;
+        while (row != dest_row) {
+            if (game->chessboard[row][src_col] != '.') {
+                return false; // Piece blocking the path
+            }
+            row += delta_row;
+        }
+    }
+    
+    return true;
 }
 
 bool is_valid_knight_move(int src_row, int src_col, int dest_row, int dest_col) {
-    (void)src_row;
-    (void)src_col;
-    (void)dest_row;
-    (void)dest_col;
-    return false;
+    // (void)src_row;
+    // (void)src_col;
+    // (void)dest_row;
+    // (void)dest_col;
+    // return false;
+    // Check if the move is in L-shape (two squares vertically and one square horizontally, or vice versa)
+    int row_diff = abs(dest_row - src_row);
+    int col_diff = abs(dest_col - src_col);
+    return ((row_diff == 2 && col_diff == 1) || (row_diff == 1 && col_diff == 2));
 }
 
 bool is_valid_bishop_move(int src_row, int src_col, int dest_row, int dest_col, ChessGame *game) {
-    (void)src_row;
-    (void)src_col;
-    (void)dest_row;
-    (void)dest_col;
-    (void)game;
-    return false;
+    // (void)src_row;
+    // (void)src_col;
+    // (void)dest_row;
+    // (void)dest_col;
+    // (void)game;
+    // return false;
+    // Check if the move is diagonal
+    int row_diff = abs(dest_row - src_row);
+    int col_diff = abs(dest_col - src_col);
+    if (row_diff != col_diff) {
+        return false; // Not moving diagonally
+    }
+    
+    // Check if there are no pieces blocking the path between source and destination
+    int delta_row = (dest_row > src_row) ? 1 : -1;
+    int delta_col = (dest_col > src_col) ? 1 : -1;
+    int row = src_row + delta_row;
+    int col = src_col + delta_col;
+    while (row != dest_row && col != dest_col) {
+        if (game->chessboard[row][col] != '.') {
+            return false; // Piece blocking the path
+        }
+        row += delta_row;
+        col += delta_col;
+    }
+    
+    return true;
 }
 
 bool is_valid_queen_move(int src_row, int src_col, int dest_row, int dest_col, ChessGame *game) {
-    (void)src_row;
-    (void)src_col;
-    (void)dest_row;
-    (void)dest_col;
-    (void)game;
-    return false;
+    // (void)src_row;
+    // (void)src_col;
+    // (void)dest_row;
+    // (void)dest_col;
+    // (void)game;
+    // return false;
+    // Check if the move is horizontal, vertical, or diagonal
+    int row_diff = abs(dest_row - src_row);
+    int col_diff = abs(dest_col - src_col);
+    
+    // Check if the move is horizontal, vertical, or diagonal
+    if (src_row != dest_row && src_col != dest_col && row_diff != col_diff) {
+        return false; // Not moving horizontally, vertically, or diagonally
+    }
+    
+    // Check if there are no pieces blocking the path between source and destination
+    if (src_row == dest_row) {
+        // Moving horizontally
+        int delta_col = (dest_col > src_col) ? 1 : -1;
+        int col = src_col + delta_col;
+        while (col != dest_col) {
+            if (game->chessboard[src_row][col] != '.') {
+                return false; // Piece blocking the path
+            }
+            col += delta_col;
+        }
+    } else if (src_col == dest_col) {
+        // Moving vertically
+        int delta_row = (dest_row > src_row) ? 1 : -1;
+        int row = src_row + delta_row;
+        while (row != dest_row) {
+            if (game->chessboard[row][src_col] != '.') {
+                return false; // Piece blocking the path
+            }
+            row += delta_row;
+        }
+    } else {
+        // Moving diagonally
+        int delta_row = (dest_row > src_row) ? 1 : -1;
+        int delta_col = (dest_col > src_col) ? 1 : -1;
+        int row = src_row + delta_row;
+        int col = src_col + delta_col;
+        while (row != dest_row && col != dest_col) {
+            if (game->chessboard[row][col] != '.') {
+                return false; // Piece blocking the path
+            }
+            row += delta_row;
+            col += delta_col;
+        }
+    }
+    
+    return true;
 }
 
 bool is_valid_king_move(int src_row, int src_col, int dest_row, int dest_col) {
-    (void)src_row;
-    (void)src_col;
-    (void)dest_row;
-    (void)dest_col;
-    return false;
+    // (void)src_row;
+    // (void)src_col;
+    // (void)dest_row;
+    // (void)dest_col;
+    // return false;
+    // Check if the move is one square in any direction (horizontally, vertically, or diagonally)
+    int row_diff = abs(dest_row - src_row);
+    int col_diff = abs(dest_col - src_col);
+    
+    // Check if the move is one square in any direction
+    return (row_diff <= 1 && col_diff <= 1);
 }
 
 bool is_valid_move(char piece, int src_row, int src_col, int dest_row, int dest_col, ChessGame *game) {
