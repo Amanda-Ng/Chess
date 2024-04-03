@@ -128,8 +128,30 @@ bool is_valid_move(char piece, int src_row, int src_col, int dest_row, int dest_
 }
 
 void fen_to_chessboard(const char *fen, ChessGame *game) {
-    (void)fen;
-    (void)game;
+    // (void)fen;
+    // (void)game;
+    // Clear the chessboard array
+    memset(game->chessboard, '.', sizeof(game->chessboard));
+    
+    // Parse the FEN string and reconstruct the chessboard
+    int i = 0, row = 0, col = 0;
+    while (fen[i] != '\0') {
+        if (fen[i] == '/') {
+            row++;
+            col = 0;
+        } else if (fen[i] >= '1' && fen[i] <= '8') {
+            int emptyCount = fen[i] - '0';
+            for (int j = 0; j < emptyCount; ++j) {
+                game->chessboard[row][col++] = '.';
+            }
+        } else {
+            game->chessboard[row][col++] = fen[i];
+        }
+        i++;
+    }
+    
+    // Determine whose turn it is
+    game->currentPlayer = (fen[i - 1] == 'b') ? BLACK_PLAYER : WHITE_PLAYER;
 }
 
 int parse_move(const char *move, ChessMove *parsed_move) {
