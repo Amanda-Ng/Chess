@@ -1,7 +1,32 @@
 #include "hw4.h"
 
 void initialize_game(ChessGame *game) {
-    (void)game;
+    // (void)game;
+    // Initialize the chessboard
+    char initial_board[8][8] = {
+        {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+        {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+        {'.', '.', '.', '.', '.', '.', '.', '.'},
+        {'.', '.', '.', '.', '.', '.', '.', '.'},
+        {'.', '.', '.', '.', '.', '.', '.', '.'},
+        {'.', '.', '.', '.', '.', '.', '.', '.'},
+        {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
+        {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+    };
+    
+    // Copy the initial board to the game's chessboard
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            game->chessboard[i][j] = initial_board[i][j];
+        }
+    }
+    
+    // Set moveCount and capturedCount to 0
+    game->moveCount = 0;
+    game->capturedCount = 0;
+    
+    // Set currentPlayer to WHITE_PLAYER
+    game->currentPlayer = WHITE_PLAYER;
 }
 
 void chessboard_to_fen(char fen[], ChessGame *game) {
