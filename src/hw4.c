@@ -30,8 +30,38 @@ void initialize_game(ChessGame *game) {
 }
 
 void chessboard_to_fen(char fen[], ChessGame *game) {
-    (void)fen;
-    (void)game;
+    // (void)fen;
+    // (void)game;
+    // Clear the FEN string
+    memset(fen, 0, sizeof(char) * 80);
+    
+    // Convert the chessboard state to FEN string
+    int i, j, k;
+    k = 0;
+    for (i = 0; i < 8; ++i) {
+        int emptyCount = 0;
+        for (j = 0; j < 8; ++j) {
+            if (game->chessboard[i][j] == '.') {
+                emptyCount++;
+            } else {
+                if (emptyCount > 0) {
+                    fen[k++] = emptyCount + '0';
+                    emptyCount = 0;
+                }
+                fen[k++] = game->chessboard[i][j];
+            }
+        }
+        if (emptyCount > 0) {
+            fen[k++] = emptyCount + '0';
+        }
+        if (i < 7) {
+            fen[k++] = '/';
+        }
+    }
+    
+    // Append whose turn it is
+    fen[k++] = ' ';
+    fen[k++] = (game->currentPlayer == WHITE_PLAYER) ? 'w' : 'b';
 }
 
 bool is_valid_pawn_move(char piece, int src_row, int src_col, int dest_row, int dest_col, ChessGame *game) {
