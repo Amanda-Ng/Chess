@@ -210,11 +210,49 @@ int save_game(ChessGame *game, const char *username, const char *db_filename) {
 }
 
 int load_game(ChessGame *game, const char *username, const char *db_filename, int save_number) {
-    (void)game;
-    (void)username;
-    (void)db_filename;
-    (void)save_number;
-    return -999;
+    // (void)game;
+    // (void)username;
+    // (void)db_filename;
+    // (void)save_number;
+    // return -999;
+    // Open the database file for reading
+    FILE *file = fopen(db_filename, "r");
+    if (file == NULL) {
+        fprintf(stderr, "Error: Could not open database file.\n");
+        return -1; // Error opening file
+    }
+    
+    // Read the file line by line
+    char line[256];
+    int count = 0;
+    int found = 0;
+    while (fgets(line, sizeof(line), file) != NULL) {
+        // Parse username and FEN string from the line
+        char user[100], fen[80];
+        sscanf(line, "%99[^:]:%79s", user, fen);
+        
+        // Check if the username and save number match
+        if (strcmp(user, username) == 0) {
+            count++;
+            if (count == save_number) {
+                found = 1;
+                // Load the game state from the FEN string
+                fen_to_chessboard(fen, game);
+                break;
+            }
+        }
+    }
+    
+    // Close the file
+    fclose(file);
+    
+    // Check if the game state was found
+    if (!found) {
+        fprintf(stderr, "Save file not found for the given username and save number.\n");
+        return -1; // Game state not found
+    }
+    
+    return 0; // Successful load operation
 }
 
 void display_chessboard(ChessGame *game) {
