@@ -300,10 +300,47 @@ void fen_to_chessboard(const char *fen, ChessGame *game) {
     game->currentPlayer = (fen[i - 1] == 'b') ? BLACK_PLAYER : WHITE_PLAYER;
 }
 
-int parse_move(const char *move, ChessMove *parsed_move) {
-    (void)move;
-    (void)parsed_move;
-    return -999;
+int parse_move(const char *str, ChessMove *move) {
+    // (void)move;
+    // (void)parsed_move;
+    // return -999;
+    // Check if the length of the move string is valid
+    size_t len = strlen(str);
+    if (len != 4 && len != 5) {
+        return PARSE_MOVE_INVALID_FORMAT;
+    }
+    
+    // Check if the row letter is in the range 'a' through 'h'
+    if (str[0] < 'a' || str[0] > 'h' || str[2] < 'a' || str[2] > 'h') {
+        return PARSE_MOVE_OUT_OF_BOUNDS;
+    }
+    
+    // Check if the column number is in the range '1' through '8'
+    if (str[1] < '1' || str[1] > '8' || str[3] < '1' || str[3] > '8') {
+        return PARSE_MOVE_OUT_OF_BOUNDS;
+    }
+    
+    // Check if the destination row is appropriate for pawn promotion (if applicable)
+    if (len == 5 && ((str[1] != '8' && str[3] != '8') || (str[1] != '1' && str[3] != '1'))) {
+        return PARSE_MOVE_INVALID_DESTINATION;
+    }
+    
+    // Check if the promotion piece is one of the valid options ('q', 'r', 'b', 'n')
+    if (len == 5 && str[4] != 'q' && str[4] != 'r' && str[4] != 'b' && str[4] != 'n') {
+        return PARSE_MOVE_INVALID_PROMOTION;
+    }
+    
+    // Copy the start and end squares into the move structure
+    strncpy(move->startSquare, str, 2);
+    move->startSquare[2] = '\0';
+    strncpy(move->endSquare, str + 2, 2);
+    move->endSquare[2] = '\0';
+    if (len == 5) {
+        strncat(move->endSquare, &str[4], 1);
+        move->endSquare[3] = '\0';
+    }
+    
+    return 0; // Successful parsing of the move string
 }
 
 int make_move(ChessGame *game, ChessMove *move, bool is_client, bool validate_move) {
