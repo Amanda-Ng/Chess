@@ -344,11 +344,84 @@ int parse_move(const char *str, ChessMove *move) {
 }
 
 int make_move(ChessGame *game, ChessMove *move, bool is_client, bool validate_move) {
-    (void)game;
-    (void)move;
-    (void)is_client;
-    (void)validate_move;
-    return -999;
+    // (void)game;
+    // (void)move;
+    // (void)is_client;
+    // (void)validate_move;
+    // return -999;
+    // Error checks if validation is needed
+    if (validate_move) {
+        // Check if it's the correct player's turn
+        if ((is_client && game->currentPlayer != WHITE_PLAYER) ||
+            (!is_client && game->currentPlayer != BLACK_PLAYER)) {
+            return MOVE_OUT_OF_TURN;
+        }
+        
+        // Extract source and destination rows and columns from move
+        int src_row = move->startSquare[1] - '1';
+        int src_col = move->startSquare[0] - 'a';
+        int dest_row = move->endSquare[1] - '1';
+        int dest_col = move->endSquare[0] - 'a';
+        
+        // Check if the source square contains a piece
+        if (game->chessboard[src_row][src_col] == '.') {
+            return MOVE_NOTHING;
+        }
+        
+        // Check if the piece being moved belongs to the current player
+        char piece = game->chessboard[src_row][src_col];
+        if ((islower(piece) && game->currentPlayer != WHITE_PLAYER) ||
+            (isupper(piece) && game->currentPlayer != BLACK_PLAYER)) {
+            return MOVE_WRONG_COLOR;
+        }
+        
+        // Check if the move results in capturing own piece
+        if (islower(game->chessboard[dest_row][dest_col]) && game->currentPlayer == WHITE_PLAYER) {
+            return MOVE_SUS;
+        }
+        if (isupper(game->chessboard[dest_row][dest_col]) && game->currentPlayer == BLACK_PLAYER) {
+            return MOVE_SUS;
+        }
+        
+        // Check if the move string has a length of 5 characters but the piece at the start square is not a pawn
+        if (strlen(move->endSquare) == 4 && (piece != 'P' && piece != 'p')) {
+            return MOVE_NOT_A_PAWN;
+        }
+        
+        // Check if the move string has a length of 4 characters but the destination square is on the row for pawn promotion
+        if (strlen(move->endSquare) == 4 && ((piece == 'P' && dest_row != 7) || (piece == 'p' && dest_row != 0))) {
+            return MOVE_MISSING_PROMOTION;
+        }
+        
+        // Check if the move is valid according to the rules of chess
+        if (!is_valid_move(piece, src_row, src_col, dest_row, dest_col, game)) {
+            return MOVE_WRONG;
+        }
+    }
+    
+    // Update game state
+    // Copy the move into the moves array
+    memcpy(&game->moves[game->moveCount], move, sizeof(ChessMove));
+    game->moveCount++;
+    
+    // Update captured pieces
+    if (islower(game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a'])) {
+        game->capturedPieces[game->capturedCount++] = game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a'];
+    }
+    
+    // Make the move on the chessboard
+    game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a'] = game->chessboard[move->startSquare[1] - '1'][move->startSquare[0] - 'a'];
+    game->chessboard[move->startSquare[1] - '1'][move->startSquare[0] - 'a'] = '.';
+    
+    // Promote pawn if necessary
+    if (strlen(move->endSquare) == 4 && (move->startSquare[0] == 'P' || move->startSquare[0] == 'p')) {
+        game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a'] = move->endSquare[3];
+    }
+    
+    // Update currentPlayer
+    game->currentPlayer = (game->currentPlayer == WHITE_PLAYER) ? BLACK_PLAYER : WHITE_PLAYER;
+    
+    return 0; // No error
 }
 
 int send_command(ChessGame *game, const char *message, int socketfd, bool is_client) {
