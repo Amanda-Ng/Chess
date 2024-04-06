@@ -336,13 +336,13 @@ int parse_move(const char *str, ChessMove *move) {
     // return -999;
     // Check if the length of the move string is valid
     size_t len = strlen(str);
-    if (len != 4 && len != 5) {
+    if ((len != 4 && len != 5 )) {
         return PARSE_MOVE_INVALID_FORMAT;
     }
     
     // Check if the row letter is in the range 'a' through 'h'
     if (str[0] < 'a' || str[0] > 'h' || str[2] < 'a' || str[2] > 'h') {
-        return PARSE_MOVE_OUT_OF_BOUNDS;
+        return PARSE_MOVE_INVALID_FORMAT;
     }
     
     // Check if the column number is in the range '1' through '8'
@@ -351,7 +351,7 @@ int parse_move(const char *str, ChessMove *move) {
     }
     
     // Check if the destination row is appropriate for pawn promotion (if applicable)
-    if (len == 5 && ((str[1] != '8' && str[3] != '8') || (str[1] != '1' && str[3] != '1'))) {
+    if (len == 5 && ((str[3] != '8') && (str[3] != '1'))) {
         return PARSE_MOVE_INVALID_DESTINATION;
     }
     
