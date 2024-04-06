@@ -266,13 +266,41 @@ bool is_valid_king_move(int src_row, int src_col, int dest_row, int dest_col) {
 }
 
 bool is_valid_move(char piece, int src_row, int src_col, int dest_row, int dest_col, ChessGame *game) {
-    (void)piece;
-    (void)src_row;
-    (void)src_col;
-    (void)dest_row;
-    (void)dest_col;
-    (void)game;
-    return false;
+    // (void)piece;
+    // (void)src_row;
+    // (void)src_col;
+    // (void)dest_row;
+    // (void)dest_col;
+    // (void)game;
+    // return false;
+        // Check if there is a piece at the source location
+    if (game->chessboard[src_row][src_col] != piece) {
+        return false; // No piece at the given source location
+    }
+    
+    // Call the appropriate is_valid function based on the piece
+    switch (piece) {
+        case 'p':
+        case 'P':
+            return is_valid_pawn_move(piece, src_row, src_col, dest_row, dest_col, game);
+        case 'r':
+        case 'R':
+            return is_valid_rook_move(src_row, src_col, dest_row, dest_col, game);
+        case 'n':
+        case 'N':
+            return is_valid_knight_move(src_row, src_col, dest_row, dest_col);
+        case 'b':
+        case 'B':
+            return is_valid_bishop_move(src_row, src_col, dest_row, dest_col, game);
+        case 'q':
+        case 'Q':
+            return is_valid_queen_move(src_row, src_col, dest_row, dest_col, game);
+        case 'k':
+        case 'K':
+            return is_valid_king_move(src_row, src_col, dest_row, dest_col);
+        default:
+            return false; // Unknown piece type
+    }
 }
 
 void fen_to_chessboard(const char *fen, ChessGame *game) {
