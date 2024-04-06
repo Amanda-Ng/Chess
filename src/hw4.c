@@ -414,12 +414,12 @@ int make_move(ChessGame *game, ChessMove *move, bool is_client, bool validate_mo
         }
         
         // Check if the move string has a length of 5 characters but the piece at the start square is not a pawn
-        if (strlen(move->endSquare) == 4 && (piece != 'P' && piece != 'p')) {
+        if (strlen(move->endSquare) == 3 && (piece != 'P' && piece != 'p')) {
             return MOVE_NOT_A_PAWN;
         }
         
         // Check if the move string has a length of 4 characters but the destination square is on the row for pawn promotion
-        if (strlen(move->endSquare) == 4 && ((piece == 'P' && dest_row != 7) || (piece == 'p' && dest_row != 0))) {
+        if (strlen(move->endSquare) == 2 && ((piece == 'P' && dest_row != 7) || (piece == 'p' && dest_row != 0))) {
             return MOVE_MISSING_PROMOTION;
         }
         
@@ -444,8 +444,8 @@ int make_move(ChessGame *game, ChessMove *move, bool is_client, bool validate_mo
     game->chessboard[move->startSquare[1] - '1'][move->startSquare[0] - 'a'] = '.';
     
     // Promote pawn if necessary
-    if (strlen(move->endSquare) == 4 && (move->startSquare[0] == 'P' || move->startSquare[0] == 'p')) {
-        game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a'] = move->endSquare[3];
+    if (strlen(move->endSquare) == 3 && (move->startSquare[0] == 'P' || move->startSquare[0] == 'p')) {
+        game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a'] = move->endSquare[2];
     }
     
     // Update currentPlayer
