@@ -435,8 +435,9 @@ int make_move(ChessGame *game, ChessMove *move, bool is_client, bool validate_mo
     game->moveCount++;
     
     // Update captured pieces
-    if (islower(game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a'])) {
-        game->capturedPieces[game->capturedCount++] = game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a'];
+    if ((game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a']) != '.') {
+        game->capturedPieces[game->capturedCount] = game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a'];
+        game->capturedCount++;
     }
     
     // Make the move on the chessboard
