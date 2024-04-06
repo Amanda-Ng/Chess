@@ -73,7 +73,7 @@ bool is_valid_pawn_move(char piece, int src_row, int src_col, int dest_row, int 
     // (void)game;
     // return false;
     int player = (piece >= 'a') ? BLACK_PLAYER : WHITE_PLAYER;
-    int direction = (player == WHITE_PLAYER) ? 1 : -1;
+    int direction = (player == WHITE_PLAYER) ? -1 : 1;
 
     // Check if destination square is within the board limits
     if (dest_row < 0 || dest_row > 7 || dest_col < 0 || dest_col > 7) {
@@ -86,7 +86,7 @@ bool is_valid_pawn_move(char piece, int src_row, int src_col, int dest_row, int 
     }
 
     // Check if pawn is moving two squares forward from its starting position
-    if (src_row == (player == WHITE_PLAYER ? 1 : 6) && dest_row - src_row == 2 * direction) {
+    if (src_row == (player == WHITE_PLAYER ? 6 : 1) && dest_row - src_row == 2 * direction) {
         // Check if the path is clear (no piece blocking)
         if (game->chessboard[src_row + direction][src_col] != '.') {
             return false;
@@ -94,7 +94,7 @@ bool is_valid_pawn_move(char piece, int src_row, int src_col, int dest_row, int 
     }
 
     // Check if pawn is moving one square forward
-    if (dest_row - src_row == 1 * direction) {
+    if ((dest_row - src_row == 1 * direction) && (abs(dest_col - src_col) == 0)) {
         // Check if the path is clear (no piece blocking)
         if (game->chessboard[dest_row][dest_col] != '.') {
             return false;
@@ -104,11 +104,13 @@ bool is_valid_pawn_move(char piece, int src_row, int src_col, int dest_row, int 
     // Check if pawn is capturing diagonally
     if (dest_col != src_col && game->chessboard[dest_row][dest_col] != '.') {
         // Check if capturing diagonally
-        if (abs(dest_col - src_col) == 1 && dest_row - src_row == 1 * direction) {
+        if (abs(dest_col - src_col) == 1 && abs(dest_row - src_row) == 1) {
             return true;
         } else {
             return false;
         }
+    } else if (dest_col != src_col && game->chessboard[dest_row][dest_col] == '.'){
+        return false;
     }
 
     return true;
