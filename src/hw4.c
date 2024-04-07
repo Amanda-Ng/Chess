@@ -498,36 +498,23 @@ int save_game(ChessGame *game, const char *username, const char *db_filename) {
     char fen[80];
     chessboard_to_fen(fen, game);
     
-    // Open the database file for reading
-    FILE *file = fopen(db_filename, "r");
-    if (file == NULL) {
-        fprintf(stderr, "Error: Could not open database file.\n");
-        return -1; // Error opening file
-    }
-
-    // Read existing contents of the file
-    char line[100];
-    int count = 0;
-    while (fgets(line, sizeof(line), file) != NULL) {
-        count++;
-    }
-    
-    // Close the file
-    fclose(file);
-
     // Open the database file for appending
-    file = fopen(db_filename, "a");
+    FILE *file = fopen(db_filename, "a");
     if (file == NULL) {
         fprintf(stderr, "Error: Could not open database file.\n");
         return -1; // Error opening file
+    }
+
+    // Check if the file is empty
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    if (file_size != 0) {
+        // File is not empty, append a newline
+        fprintf(file, "\n");
     }
 
     // Write the username and FEN string to the file
-    if (count > 0) {
-        fprintf(file, "\n%s:%s", username, fen); // Append to a new line
-    } else {
-        fprintf(file, "%s:%s", username, fen); // Write without a new line if file was empty
-    }
+    fprintf(file, "%s:%s", username, fen);
     
     // Close the file
     fclose(file);
