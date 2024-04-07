@@ -420,7 +420,7 @@ int make_move(ChessGame *game, ChessMove *move, bool is_client, bool validate_mo
         }
         
         // Check if the move string has a length of 4 characters but the destination square is on the row for pawn promotion
-        if (strlen(move->endSquare) == 2 && ((piece == 'P' && dest_row != 0) || (piece == 'p' && dest_row != 7))) {
+        if (strlen(move->endSquare) == 2 && ((piece == 'P' && dest_row == 0) || (piece == 'p' && dest_row == 7))) {
             return MOVE_MISSING_PROMOTION;
         }
         
