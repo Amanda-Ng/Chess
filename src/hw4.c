@@ -379,6 +379,13 @@ int make_move(ChessGame *game, ChessMove *move, bool is_client, bool validate_mo
     // (void)is_client;
     // (void)validate_move;
     // return -999;
+
+    // Extract source and destination rows and columns from move
+    int src_row = '8' - move->startSquare[1];
+    int src_col = move->startSquare[0] - 'a';
+    int dest_row = '8' - move->endSquare[1];
+    int dest_col = move->endSquare[0] - 'a';
+
     // Error checks if validation is needed
     if (validate_move) {
         // Check if it's the correct player's turn
@@ -387,12 +394,6 @@ int make_move(ChessGame *game, ChessMove *move, bool is_client, bool validate_mo
             return MOVE_OUT_OF_TURN;
         }
         
-        // Extract source and destination rows and columns from move
-        int src_row = move->startSquare[1] - '1';
-        int src_col = move->startSquare[0] - 'a';
-        int dest_row = move->endSquare[1] - '1';
-        int dest_col = move->endSquare[0] - 'a';
-        
         // Check if the source square contains a piece
         if (game->chessboard[src_row][src_col] == '.') {
             return MOVE_NOTHING;
@@ -400,16 +401,16 @@ int make_move(ChessGame *game, ChessMove *move, bool is_client, bool validate_mo
         
         // Check if the piece being moved belongs to the current player
         char piece = game->chessboard[src_row][src_col];
-        if ((islower(piece) && game->currentPlayer != WHITE_PLAYER) ||
-            (isupper(piece) && game->currentPlayer != BLACK_PLAYER)) {
+        if ((islower(piece) && game->currentPlayer == WHITE_PLAYER) ||
+            (isupper(piece) && game->currentPlayer == BLACK_PLAYER)) {
             return MOVE_WRONG_COLOR;
         }
         
         // Check if the move results in capturing own piece
-        if (islower(game->chessboard[dest_row][dest_col]) && game->currentPlayer == WHITE_PLAYER) {
+        if (islower(game->chessboard[dest_row][dest_col]) && game->currentPlayer != WHITE_PLAYER) {
             return MOVE_SUS;
         }
-        if (isupper(game->chessboard[dest_row][dest_col]) && game->currentPlayer == BLACK_PLAYER) {
+        if (isupper(game->chessboard[dest_row][dest_col]) && game->currentPlayer != BLACK_PLAYER) {
             return MOVE_SUS;
         }
         
@@ -419,7 +420,7 @@ int make_move(ChessGame *game, ChessMove *move, bool is_client, bool validate_mo
         }
         
         // Check if the move string has a length of 4 characters but the destination square is on the row for pawn promotion
-        if (strlen(move->endSquare) == 2 && ((piece == 'P' && dest_row != 7) || (piece == 'p' && dest_row != 0))) {
+        if (strlen(move->endSquare) == 2 && ((piece == 'P' && dest_row != 0) || (piece == 'p' && dest_row != 7))) {
             return MOVE_MISSING_PROMOTION;
         }
         
@@ -435,18 +436,27 @@ int make_move(ChessGame *game, ChessMove *move, bool is_client, bool validate_mo
     game->moveCount++;
     
     // Update captured pieces
-    if ((game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a']) != '.') {
-        game->capturedPieces[game->capturedCount] = game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a'];
+    if ((game->chessboard[dest_row][dest_col]) != '.') {
+        game->capturedPieces[game->capturedCount] = game->chessboard[dest_row][dest_col];
         game->capturedCount++;
     }
     
     // Make the move on the chessboard
-    game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a'] = game->chessboard[move->startSquare[1] - '1'][move->startSquare[0] - 'a'];
-    game->chessboard[move->startSquare[1] - '1'][move->startSquare[0] - 'a'] = '.';
+    game->chessboard[dest_row][dest_col] = game->chessboard[src_row][src_col];
+    game->chessboard[src_row][src_col] = '.';
     
+    // Determine current player's color
+    char currentPlayer = game->currentPlayer;
+    bool isWhite = (currentPlayer == WHITE_PLAYER);
+
     // Promote pawn if necessary
-    if (strlen(move->endSquare) == 3 && (move->startSquare[0] == 'P' || move->startSquare[0] == 'p')) {
-        game->chessboard[move->endSquare[1] - '1'][move->endSquare[0] - 'a'] = move->endSquare[2];
+    if (strlen(move->endSquare) == 3) {
+        char promotionPiece = move->endSquare[2];
+        if ((isWhite && islower(promotionPiece)) || (!isWhite && isupper(promotionPiece))) {
+            // Convert to uppercase if white player, or to lowercase if black player
+            promotionPiece = (isWhite ? toupper(promotionPiece) : tolower(promotionPiece));
+        }
+        game->chessboard[dest_row][dest_col] = promotionPiece;
     }
     
     // Update currentPlayer
