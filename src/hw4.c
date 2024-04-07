@@ -486,6 +486,14 @@ int save_game(ChessGame *game, const char *username, const char *db_filename) {
     // (void)username;
     // (void)db_filename;
     // return -999;
+    // Check if username is empty or contains spaces
+    for (const char *ptr = username; *ptr != '\0'; ++ptr) {
+        if (*ptr == ' ' || *ptr == '\t') {
+            fprintf(stderr, "Error: Username cannot contain spaces or be empty.\n");
+            return -1;
+        }
+    }
+
     // Generate FEN string of the current game state
     char fen[80];
     chessboard_to_fen(fen, game);
