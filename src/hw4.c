@@ -476,7 +476,7 @@ int send_command(ChessGame *game, const char *message, int socketfd, bool is_cli
     int ret_code = COMMAND_UNKNOWN;
 
     // Parse command and argument from the message
-    sscanf(message, "/%s %s", command, argument);
+    sscanf(message, "/%s %[^\n]", command, argument);
 
     if (strcmp(command, "move") == 0) {
         // Parse and validate the move
@@ -503,7 +503,7 @@ int send_command(ChessGame *game, const char *message, int socketfd, bool is_cli
         // Display the chessboard and return COMMAND_CHESSBOARD
         display_chessboard(game);
         ret_code = COMMAND_DISPLAY;
-    } else if (strcmp(command, "import") == 0 && !is_client) {
+    } else if (strcmp(command, "import") == 0 && is_client) {
         // Import FEN string and send it over the socket
         fen_to_chessboard(argument, game);
         send(socketfd, message, strlen(message), 0);
@@ -546,7 +546,7 @@ int receive_command(ChessGame *game, const char *message, int socketfd, bool is_
     int ret_code = -1;
 
     // Parse command and argument from the message
-    sscanf(message, "/%s %s", command, argument);
+    sscanf(message, "/%s %[^\n]", command, argument);
 
     if (strcmp(command, "move") == 0) {
         // Parse and validate the move
@@ -567,7 +567,7 @@ int receive_command(ChessGame *game, const char *message, int socketfd, bool is_
         // Close the socket and return COMMAND_FORFEIT
         close(socketfd);
         ret_code = COMMAND_FORFEIT;
-    } else if (strcmp(command, "import") == 0 && !is_client) {
+    } else if (strcmp(command, "import") == 0 && is_client) {
         // Import FEN string and return COMMAND_IMPORT
         fen_to_chessboard(argument, game);
         ret_code = COMMAND_IMPORT;
