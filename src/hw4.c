@@ -472,7 +472,7 @@ int send_command(ChessGame *game, const char *message, int socketfd, bool is_cli
     // (void)is_client;
     // return -999;
     char command[10];
-    char argument[100];
+    char argument[BUFFER_SIZE];
     int ret_code = COMMAND_UNKNOWN;
 
     // Parse command and argument from the message
@@ -481,7 +481,7 @@ int send_command(ChessGame *game, const char *message, int socketfd, bool is_cli
     if (strcmp(command, "move") == 0) {
         // Parse and validate the move
         ChessMove move;
-        if (parse_move(argument, &move)) {
+        if (parse_move(argument, &move) == 0) {
             int result = make_move(game, &move, is_client, true);
             if (result == 0) {
                 // If the move is valid, send it over the socket
@@ -523,7 +523,7 @@ int send_command(ChessGame *game, const char *message, int socketfd, bool is_cli
         }
     } else if (strcmp(command, "save") == 0) {
         // Save the game and return COMMAND_SAVE
-        if (save_game(game, "client_username", "game_database.txt") == 0) {
+        if (save_game(game, argument, "game_database.txt") == 0) {
             send(socketfd, message, strlen(message), 0);
             ret_code = COMMAND_SAVE;
         } else {
@@ -551,7 +551,7 @@ int receive_command(ChessGame *game, const char *message, int socketfd, bool is_
     if (strcmp(command, "move") == 0) {
         // Parse and validate the move
         ChessMove move;
-        if (parse_move(argument, &move)) {
+        if (parse_move(argument, &move) == 0) {
             int result = make_move(game, &move, !is_client, false);
             if (result == 0) {
                 ret_code = COMMAND_MOVE;
