@@ -466,19 +466,126 @@ int make_move(ChessGame *game, ChessMove *move, bool is_client, bool validate_mo
 }
 
 int send_command(ChessGame *game, const char *message, int socketfd, bool is_client) {
-    (void)game;
-    (void)message;
-    (void)socketfd;
-    (void)is_client;
-    return -999;
+    // (void)game;
+    // (void)message;
+    // (void)socketfd;
+    // (void)is_client;
+    // return -999;
+    char command[10];
+    char argument[100];
+    int ret_code = COMMAND_UNKNOWN;
+
+    // Parse command and argument from the message
+    sscanf(message, "/%s %s", command, argument);
+
+    if (strcmp(command, "move") == 0) {
+        // Parse and validate the move
+        ChessMove move;
+        if (parse_move(argument, &move)) {
+            int result = make_move(game, &move, is_client, true);
+            if (result == 0) {
+                // If the move is valid, send it over the socket
+                send(socketfd, message, strlen(message), 0);
+                ret_code = COMMAND_MOVE;
+            } else {
+                // If an error occurred during move execution, return COMMAND_ERROR
+                ret_code = COMMAND_ERROR;
+            }
+        } else {
+            // If the move parsing failed, return COMMAND_ERROR
+            ret_code = COMMAND_ERROR;
+        }
+    } else if (strcmp(command, "forfeit") == 0) {
+        // Send the forfeit command over the socket
+        send(socketfd, message, strlen(message), 0);
+        ret_code = COMMAND_FORFEIT;
+    } else if (strcmp(command, "chessboard") == 0) {
+        // Display the chessboard and return COMMAND_CHESSBOARD
+        display_chessboard(game);
+        ret_code = COMMAND_DISPLAY;
+    } else if (strcmp(command, "import") == 0 && !is_client) {
+        // Import FEN string and send it over the socket
+        fen_to_chessboard(argument, game);
+        send(socketfd, message, strlen(message), 0);
+        ret_code = COMMAND_IMPORT;
+    } else if (strcmp(command, "load") == 0) {
+        // Parse username and game number from the argument
+        char username[50];
+        int game_num;
+        sscanf(argument, "%s %d", username, &game_num);
+        // Load the game and send a message over the socket
+        if (load_game(game, username, "game_database.txt", game_num) == 0) {
+            send(socketfd, message, strlen(message), 0);
+            ret_code = COMMAND_LOAD;
+        } else {
+            // If loading failed, return COMMAND_ERROR
+            ret_code = COMMAND_ERROR;
+        }
+    } else if (strcmp(command, "save") == 0) {
+        // Save the game and return COMMAND_SAVE
+        if (save_game(game, "client_username", "game_database.txt") == 0) {
+            send(socketfd, message, strlen(message), 0);
+            ret_code = COMMAND_SAVE;
+        } else {
+            // If saving failed, return COMMAND_ERROR
+            ret_code = COMMAND_ERROR;
+        }
+    }
+
+    return ret_code;
 }
 
 int receive_command(ChessGame *game, const char *message, int socketfd, bool is_client) {
-    (void)game;
-    (void)message;
-    (void)socketfd;
-    (void)is_client;
-    return -999;
+    // (void)game;
+    // (void)message;
+    // (void)socketfd;
+    // (void)is_client;
+    // return -999;
+    char command[10];
+    char argument[BUFFER_SIZE];
+    int ret_code = -1;
+
+    // Parse command and argument from the message
+    sscanf(message, "/%s %s", command, argument);
+
+    if (strcmp(command, "move") == 0) {
+        // Parse and validate the move
+        ChessMove move;
+        if (parse_move(argument, &move)) {
+            int result = make_move(game, &move, !is_client, false);
+            if (result == 0) {
+                ret_code = COMMAND_MOVE;
+            } else {
+                // If an error occurred during move execution, return COMMAND_ERROR
+                ret_code = COMMAND_ERROR;
+            }
+        } else {
+            // If the move parsing failed, return COMMAND_ERROR
+            ret_code = COMMAND_ERROR;
+        }
+    } else if (strcmp(command, "forfeit") == 0) {
+        // Close the socket and return COMMAND_FORFEIT
+        close(socketfd);
+        ret_code = COMMAND_FORFEIT;
+    } else if (strcmp(command, "import") == 0 && !is_client) {
+        // Import FEN string and return COMMAND_IMPORT
+        fen_to_chessboard(argument, game);
+        ret_code = COMMAND_IMPORT;
+    } else if (strcmp(command, "load") == 0) {
+        // Parse username and game number from the argument
+        char username[50];
+        int game_num;
+        sscanf(argument, "%s %d", username, &game_num);
+        // Load the game and return COMMAND_LOAD
+        if (load_game(game, username, "game_database.txt", game_num) == 0) {
+            ret_code = COMMAND_LOAD;
+        } else {
+            // If loading failed, return COMMAND_ERROR
+            ret_code = COMMAND_ERROR;
+        }
+    }
+
+    return ret_code;
 }
 
 int save_game(ChessGame *game, const char *username, const char *db_filename) {
